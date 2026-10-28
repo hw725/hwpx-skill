@@ -9,6 +9,18 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+# ── CJK Text Contract E3 (CJK-TEXT-CONTRACT.md) ───────────────────
+# 한국어 Windows 콘솔의 기본은 cp949 다. 한글·한자는 대개 있지만 《—》·《✓》·확장
+# 한자·옛한글은 **없어서**, 그런 글자를 print 하면 UnicodeEncodeError 로 즉사한다.
+# 이 PC 는 사용자 환경변수 PYTHONUTF8=1 이 박혀 있어 겪지 않는다 — 받는 사람 PC
+# 에는 없다. 스킬끼리는 import 하지 않으므로(각자 junction 으로 배포) 네 줄을 품는다.
+# (로컬 분기 — 상류 jkf87/hwpx-skill 에는 없다. vendor/hwpx/.upstream.json 참조)
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass  # 파이프·리다이렉트 등 재설정 불가 환경
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 import verify_reproducibility as replay
@@ -79,7 +91,7 @@ class ReplayTests(unittest.TestCase):
 
     def test_input_drift_fails_even_when_bytes_match(self):
         def mutate():
-            value = json.loads(self.spec.read_text())
+            value = json.loads(self.spec.read_text(encoding="utf-8"))
             value["title"] += " 변경"
             self.spec.write_text(json.dumps(value), encoding="utf-8")
 

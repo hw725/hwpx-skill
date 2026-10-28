@@ -36,6 +36,18 @@ import re
 import subprocess
 import sys
 
+# ── CJK Text Contract E3 (CJK-TEXT-CONTRACT.md) ───────────────────
+# 한국어 Windows 콘솔의 기본은 cp949 다. 한글·한자는 대개 있지만 《—》·《✓》·확장
+# 한자·옛한글은 **없어서**, 그런 글자를 print 하면 UnicodeEncodeError 로 즉사한다.
+# 이 PC 는 사용자 환경변수 PYTHONUTF8=1 이 박혀 있어 겪지 않는다 — 받는 사람 PC
+# 에는 없다. 스킬끼리는 import 하지 않으므로(각자 junction 으로 배포) 네 줄을 품는다.
+# (로컬 분기 — 상류 jkf87/hwpx-skill 에는 없다. vendor/hwpx/.upstream.json 참조)
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass  # 파이프·리다이렉트 등 재설정 불가 환경
+
 # .hwpx를 '전달'하는 명령으로 보는 패턴 — 이때만 검사 (생성/중간단계는 통과)
 DELIVERY_PATTERNS = [
     r"\bopen\b",          # macOS: 한컴에서 열기 (open -a, open file.hwpx)
@@ -102,7 +114,7 @@ def main():
     try:
         proc = subprocess.run(
             [sys.executable, checker, "check", target, "--strict"],
-            capture_output=True, text=True, timeout=30)
+            capture_output=True, text=True, encoding="utf-8", timeout=30)
     except Exception:  # noqa: BLE001
         return 0  # 검사기 실행 실패 시 통과 (작업 차단보다 진행 우선)
 

@@ -1,13 +1,51 @@
 ---
 name: hwpx
-description: "한글 HWP/HWPX 파일의 변환·읽기·편집과 편집 가능한 .hwpx 문서 생성. 한글 파일, HWP 변환, HWPX 공문·보고서·계획서·활동지, 기존 한글 양식 채우기 요청에 사용한다."
+description: "명시적 .hwpx 생성·읽기·편집, 명시적 HWP→HWPX 변환, 또는 hwp front-door가 위임한 개방형 문서 변환·편집 전용 스킬. 확장자 미지정 일반 한글 문서와 임의의 .hwp 읽기·직접 편집은 hwp가 먼저 판별한다."
+allowed-tools: Bash(python3 *), Bash(python *), Bash(py -3 *), Bash(powershell.exe *), Read, Write, Glob, Grep
+metadata:
+  author: jkf87
+  version: "1.3.0"
+  category: documents
+  upstream: https://github.com/jkf87/hwpx-skill
+  upstream_pin: ba90fc5ae15f4aead8dab4f9d69d4830b9569859
+  license: UNLICENSED (upstream has no license — see NOTICE.md section 4)
+  local_divergence: >-
+    상류 jkf87/hwpx-skill 을 ba90fc5(2026-09-15)에 고정해 벤더링한다. 기계 검사 사양은 .upstream.json 이 정본이다.
+    (1) description·allowed-tools·이 frontmatter 는 로컬 것이다 — hwp front-door 라우팅을 지킨다.
+    (2) 본문의 《소유권 경계》·《환경 설정》·《완료 조건》·《손대지 말 것》 절과 py -3 안내는 로컬 추가다.
+    (3) 스크립트·시험 52개에 CJK Text Contract E3(콘솔 UTF-8 고정) 블록, fill_hwpx·finalize_hwpx·시험 2개에
+    R1(regex 모듈 \p{Hangul}), 시험 4개에 E2(read_text 인코딩 명시)를 넣었다 — 받는 사람 PC 의 cp949 콘솔 대비.
+    (4) 실행 중 pip 설치·--break-system-packages·고정 없는 git clone·원작자 개인 경로를 쓰지 않는다
+    (2026-10-07 트리아지 P0). 상류 convert_hwp.py 는 이제 고정 벤더링 rhwp WASM(npm @rhwp/core 0.7.12 와
+    바이트 동일 — 상류 vendor/README 의 0.7.10 표기는 오기)을 써서 이 조건을 스스로 만족한다.
+    (5) 상류 README·RELEASE_NOTES·.gitignore 는 받지 않는다. 폴더의 README.md 는 로컬 안내문이다.
 ---
 
 # 편집 가능한 고품질 한글 문서
 
+> 아래 명령의 `python`·`python3`는 macOS/Linux 표기다. Windows(이 PC)에서는 `py -3`로 바꿔 부른다 — 이 PC의 `python3`는 Store 스텁이라 조용히 실패한다. (로컬 분기)
+
 모델은 요구 이해와 원고 구성에 집중하고, 코드는 입력 계약·자원·내용 보존·파일 저장을 검증한다. 같은 명세의 재현성과 서로 다른 모델의 결과 일관성은 별개다. 실제 모델 비교 없이 후자를 보장하지 않는다.
 
 아스트라(Astra, `gpt-6-astra`)를 사용하는 Codex 환경을 지원한다. 집필·도식 설계·검토에 사용자 지정 모델과 추론 설정을 유지하며, 사용자 요청 없이 Astra로 전환하거나 추가 모델을 호출하지 않는다. Astra와 Luna 모두 같은 입력 계약·검사 경로를 사용한다.
+
+## 소유권 경계
+
+이 스킬은 명시적 `.hwpx` 작업, 명시적 HWP→HWPX 변환, 또는 `hwp` front-door가 위임한 개방형 문서 변환·편집만 담당한다. `.hwp` 파일이 입력됐다는 이유만으로 자동 변환하지 않는다. 기존 `.hwp`의 읽기·추출·직접 편집과 확장자를 지정하지 않은 일반 한글 문서 요청은 `hwp`가 먼저 판별한다.
+
+역주 HWPX의 각주·본문을 스타일 불변으로 제자리 교정하는 작업은 `hwpx-footnotes`, 추출 결과의 구결자·PUA 복원은 `gugyeol-decode`로 보낸다.
+
+## 환경 설정
+
+프로젝트 venv에 설치하거나(권장), venv가 없으면 `py -3 -m pip install`로 설치한다. 시스템 Python을 깨는 `--break-system-packages`는 쓰지 않고, 스크립트도 실행 중에 패키지를 설치하거나 저장소를 클론하지 않는다.
+
+```text
+py -3 -m pip install -r requirements-one-shot.txt      # lxml·jsonschema·Pillow·regex(+Windows pywin32)
+```
+
+- HWP→HWPX 변환 `convert_hwp.py`는 Node.js 18+가 필요하다. 변환 엔진은 `scripts/vendor/rhwp/`에 고정돼 있다(npm `@rhwp/core` 0.7.12와 바이트 동일, MIT).
+- 한컴 COM 경로(`convert_hwp_hancom.ps1`·`render_hwpx.py`·`validate.py --hancom`)는 Windows 한컴오피스와 HwpAutomation 파일 경로 보안 모듈이 있어야 한다. 이 스크립트들은 스스로 띄운 COM 객체만 `Quit()`으로 닫는다. 한/글 프로세스를 이름으로 끄는 명령은 사용자가 열어 둔 문서까지 닫으므로 쓰지 않는다.
+- pyhwpx 기반 `.hwp` 저장의 한글·공백 경로 함정과 내용 검증법은 `hwp` 스킬 《워크플로우 G》가 소유한다.
 
 ## 새 문서
 
@@ -74,6 +112,8 @@ python scripts/render_hwpx.py /absolute/path/output.hwpx --output-dir /absolute/
 
 원본을 받으면 원본 보존 편집을 우선한다. 비대상 ZIP 엔트리·본문·그림을 보존한다.
 
+> `.hwp` 입력은 HWP→HWPX 변환이 명시됐거나 `hwp` front-door가 변환·후속 편집을 위임한 경우에만 아래 변환 명령을 쓴다. 그 밖의 `.hwp` 읽기·직접 편집은 `hwp`로 돌려보낸다. (로컬 분기)
+
 ```text
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/convert_hwp_hancom.ps1 -InputPath input.hwp -OutputDirectory converted
 python scripts/convert_hwp.py input.hwp -o converted.hwpx
@@ -111,6 +151,22 @@ python scripts/finalize_hwpx.py output.hwpx --hancom
 | 읽기·텍스트 추출 | `text_extract.py`, 고급 참고서 워크플로우 E |
 
 `doc_spec.py render`는 HWPX 조립이며 페이지 렌더러가 아니다. 필요한 참고서를 더 읽는 횟수를 제한하지 않는다. 일반 새 문서에는 이 메인 경로가 과거 고급 예제보다 우선한다.
+
+## 완료 조건
+
+문서가 《완료》인 상태는 다음이 모두 참일 때다. 어느 하나라도 확인하지 않았으면 《생성됨》이라 보고하지 않는다. (로컬 추가)
+
+- 원샷이면 리포트의 `ok`·`published`가 참이고 `draft`가 아니다. 원샷 밖이면 위 전달 전 검사(`fix_namespaces.py` → `finalize_hwpx.py --strip-linesegarray --layout` → `validate.py --layout` → `fill_hwpx.py check --strict`)를 모두 통과했다.
+- `text_extract.py`로 내용이 의도대로 들어갔는지 직접 확인했다 — 검수 서브에이전트의 PASS도 이 확인을 대신하지 않는다.
+- 한컴 렌더·시각 검토를 했으면 그렇다고, 못 했으면 《미수행》이라고 적는다. 정적 검사 통과를 한컴 열림으로 보고하지 않는다.
+- 양식 복제·채우기면 원본의 charPr/paraPr ID와 비대상 엔트리가 그대로 보존됐다.
+
+## 손대지 말 것
+
+- XML 태그·속성은 [xml-structure.md](references/xml-structure.md)에서 확인된 것만 쓴다. 추측한 태그는 한컴오피스에서 문서가 열리지 않게 만든다. `<hp:pic>`도 같은 파일의 구조를 따른다.
+- 템플릿 ID는 템플릿 간에 호환되지 않는다. base charPr 3은 《16pt 제목》이 아니라 《9pt 각주》다.
+- 양식에서 `<hp:t>` 노드 순차 덮어쓰기나 lxml 직접 조작은 런 소실·서식 파괴를 일으킨다. 런을 보존하는 경로는 `fill_hwpx.py`·`clone_form.py`와 ZIP-level 치환이다.
+- `.hwp` 읽기·직접 편집은 `hwp` 스킬 소관이다. 여기서는 HWP→HWPX 명시 요청이나 `hwp`의 위임이 있을 때만 변환한다.
 
 ## 결과 전달
 

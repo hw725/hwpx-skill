@@ -70,10 +70,10 @@ with tempfile.TemporaryDirectory() as d:
     try:
         import lxml  # noqa: F401
         r = subprocess.run([sys.executable, str(ROOT / "scripts/validate.py"), str(out)],
-                           capture_output=True, text=True)
+                           capture_output=True, text=True, encoding="utf-8")
         check("validate VALID", "VALID" in r.stdout and "INVALID" not in r.stdout)
         r = subprocess.run([sys.executable, str(ROOT / "scripts/fill_hwpx.py"),
-                            "check", str(out), "--strict"], capture_output=True, text=True)
+                            "check", str(out), "--strict"], capture_output=True, text=True, encoding="utf-8")
         check("check --strict 통과(exit 0)", r.returncode == 0, detail=r.stderr[:160])
     except Exception:
         print("  ⊘ SKIP validate/check (lxml 미설치)")

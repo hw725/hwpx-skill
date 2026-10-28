@@ -7,6 +7,7 @@
 """
 import hashlib
 import re
+import regex  # CJK Text Contract R1 — \p{Hangul} (로컬 분기)
 import sys
 import tempfile
 import zipfile
@@ -123,7 +124,7 @@ with tempfile.TemporaryDirectory() as d:
     # 본문 글자는 전부 샘플 마크다운에서 왔는가 — 템플릿이 글자를 끼워 넣지 않는다
     _txt = " ".join(re.findall(r"<hp:t>(.*?)</hp:t>", sec))
     _src = re.sub(r"[*+!_=]{2}", "", yoyak.SAMPLE)
-    _alien = [w for w in re.findall(r"[가-힣]{2,}", _txt) if w not in _src and w not in ("보고서", "기관명")]
+    _alien = [w for w in regex.findall(r"[\p{Hangul}]{2,}", _txt) if w not in _src and w not in ("보고서", "기관명")]
     check("본문 한글 낱말이 전부 샘플에서 온 것(템플릿 삽입 글자 없음)", not _alien, str(_alien[:5]))
     check("한컴 붙여넣기 그림 이름(CLP…)·그림 브러시 없음", "CLP0" not in sec + hpf and "imgBrush" not in header_xml)
     check("PrvText 채움", len(preview) > 100)

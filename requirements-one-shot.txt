@@ -1,4 +1,6 @@
 lxml>=4.9
 jsonschema>=4.18
 Pillow>=10
+# 로컬 분기: CJK Text Contract R1 — fill_hwpx.py·finalize_hwpx.py 가 \p{Hangul} 에 regex 모듈을 쓴다
+regex>=2023.0
 pywin32>=306; sys_platform == "win32"

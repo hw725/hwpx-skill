@@ -45,9 +45,9 @@ def gen(**kw):
     v = c = None
     if have_lxml:
         v = subprocess.run([sys.executable, str(ROOT / "scripts/validate.py"), str(out)],
-                           capture_output=True, text=True).stdout
+                           capture_output=True, text=True, encoding="utf-8").stdout
         c = subprocess.run([sys.executable, str(ROOT / "scripts/fill_hwpx.py"),
-                            "check", str(out), "--strict"], capture_output=True, text=True).returncode
+                            "check", str(out), "--strict"], capture_output=True, text=True, encoding="utf-8").returncode
     return out, x, v, c
 
 

@@ -7,6 +7,7 @@
 """
 import hashlib
 import re
+import regex  # CJK Text Contract R1 — \p{Hangul} (로컬 분기)
 import sys
 import tempfile
 import zipfile
@@ -120,7 +121,7 @@ with tempfile.TemporaryDirectory() as d:
           and not (used("borderFill") - dfn("borderFill")))
     check("linesegarray 없음", "linesegarray" not in s)
     _txt = " ".join(re.findall(r"<hp:t>(.*?)</hp:t>", s))
-    _alien = [w for w in re.findall(r"[가-힣]{2,}", _txt) if w not in re.sub(r"[*+!_=]{2}", "", geomto.SAMPLE)
+    _alien = [w for w in regex.findall(r"[\p{Hangul}]{2,}", _txt) if w not in re.sub(r"[*+!_=]{2}", "", geomto.SAMPLE)
               and w not in ("문서번호", "보존기간", "결재일자", "공개여부")]
     check("본문 한글 낱말이 전부 샘플에서 온 것(템플릿 삽입 글자는 표지 라벨 4개뿐)", not _alien, str(_alien[:5]))
     check("한컴 붙여넣기 그림 이름(CLP…) 없음", "CLP0" not in s)

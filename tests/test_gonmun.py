@@ -199,7 +199,7 @@ else:
                   "행정안전부장관" in z.read("Preview/PrvText.txt").decode("utf-8"))
         # check --strict
         r = subprocess.run([sys.executable, str(ROOT / "scripts/fill_hwpx.py"),
-                            "check", str(out), "--strict"], capture_output=True, text=True)
+                            "check", str(out), "--strict"], capture_output=True, text=True, encoding="utf-8")
         check("check --strict 통과(exit 0)", r.returncode == 0, detail=r.stderr[:200])
 
 print(f"\n{PASS} passed, {FAIL} failed")

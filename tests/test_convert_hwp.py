@@ -60,7 +60,7 @@ def run_converter(*arguments: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [sys.executable, str(CONVERTER), *arguments],
         capture_output=True,
-        text=True,
+        text=True, encoding="utf-8",
     )
 
 
@@ -116,7 +116,7 @@ def test_table_linebreaks_and_strict_validation() -> None:
         validated = subprocess.run(
             [sys.executable, str(VALIDATOR), str(output)],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8",
         )
         assert validated.returncode == 0, validated.stdout + validated.stderr
         with zipfile.ZipFile(output) as archive:
@@ -225,7 +225,7 @@ def test_post_export_picture_and_manifest_patches() -> None:
 def test_node18_esm_boundary() -> None:
     package = cast(
         dict[str, str],
-        json.loads((SCRIPTS / "vendor" / "rhwp" / "package.json").read_text()),
+        json.loads((SCRIPTS / "vendor" / "rhwp" / "package.json").read_text(encoding="utf-8")),
     )
     assert package == {"type": "module"}
     node18 = os.environ.get("NODE18_BIN")
@@ -233,7 +233,7 @@ def test_node18_esm_boundary() -> None:
         completed = subprocess.run(
             [node18, str(SCRIPTS / "rhwp_convert.mjs"), "--info", str(FIXTURE)],
             capture_output=True,
-            text=True,
+            text=True, encoding="utf-8",
         )
         assert completed.returncode == 0, completed.stderr
         assert completed.stdout.startswith("hwp\n5.0.3.4\n")

@@ -71,7 +71,8 @@ ${CLAUDE_SKILL_DIR}/
 ## 환경 설정
 
 ```bash
-pip install python-hwpx lxml --break-system-packages
+# (로컬 분기) 프로젝트 venv 에 설치한다. 시스템 Python 을 깨는 그 플래그는 쓰지 않는다. Windows 는 py -3 -m pip
+pip install python-hwpx lxml
 # HWP→HWPX 변환 (Workflow H)
 # Windows: 한컴오피스 한글 + HwpAutomation 파일 경로 보안 모듈 권장(추가 Python 의존성 없음)
 # 그 외/폴백: Node.js 18+, rhwp WASM 런타임은 scripts/vendor/rhwp에 고정·포함

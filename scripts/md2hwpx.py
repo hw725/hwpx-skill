@@ -34,6 +34,18 @@ import tempfile
 from pathlib import Path
 from xml.sax.saxutils import escape as xml_escape
 
+# ── CJK Text Contract E3 (CJK-TEXT-CONTRACT.md) ───────────────────
+# 한국어 Windows 콘솔의 기본은 cp949 다. 한글·한자는 대개 있지만 《—》·《✓》·확장
+# 한자·옛한글은 **없어서**, 그런 글자를 print 하면 UnicodeEncodeError 로 즉사한다.
+# 이 PC 는 사용자 환경변수 PYTHONUTF8=1 이 박혀 있어 겪지 않는다 — 받는 사람 PC
+# 에는 없다. 스킬끼리는 import 하지 않으므로(각자 junction 으로 배포) 네 줄을 품는다.
+# (로컬 분기 — 상류 jkf87/hwpx-skill 에는 없다. vendor/hwpx/.upstream.json 참조)
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass  # 파이프·리다이렉트 등 재설정 불가 환경
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 SKILL_DIR = SCRIPT_DIR.parent
 
@@ -595,7 +607,7 @@ def main():
         cmd.extend(["--header", str(args.header)])
 
     print(f"빌드: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    result = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
     print(result.stdout)
     if result.returncode != 0:
         print(f"ERROR: build_hwpx.py 실패:\n{result.stderr}", file=sys.stderr)
@@ -611,7 +623,7 @@ def main():
         if fix_script.is_file():
             ns_result = subprocess.run(
                 [sys.executable, str(fix_script), str(args.output)],
-                capture_output=True, text=True
+                capture_output=True, text=True, encoding="utf-8"
             )
             if ns_result.returncode == 0:
                 print("네임스페이스 후처리 완료")
@@ -636,7 +648,7 @@ def main():
     if validate_script.is_file():
         v_result = subprocess.run(
             [sys.executable, str(validate_script), str(args.output)],
-            capture_output=True, text=True
+            capture_output=True, text=True, encoding="utf-8"
         )
         print(v_result.stdout)
 
@@ -645,7 +657,7 @@ def main():
     if extract_script.is_file():
         e_result = subprocess.run(
             [sys.executable, str(extract_script), str(args.output)],
-            capture_output=True, text=True
+            capture_output=True, text=True, encoding="utf-8"
         )
         extracted = e_result.stdout.strip()
         lines = extracted.split('\n')

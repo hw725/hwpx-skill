@@ -112,7 +112,7 @@ python3 scripts/fill_hwpx.py check 파일.hwpx --strict
 | 원인 | 해결 |
 |------|------|
 | HwpxDocument.open() 실패 | XML-first 접근 또는 ZIP-level 치환 사용 |
-| ObjectFinder 에러 | `pip install python-hwpx --break-system-packages` |
+| ObjectFinder 에러 | 프로젝트 venv에서 `pip install python-hwpx` (Windows는 `py -3 -m pip install python-hwpx`) |
 
 ## Hancom says the file is damaged after text replacement
 

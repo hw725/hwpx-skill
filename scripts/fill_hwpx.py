@@ -52,10 +52,23 @@ import io
 import json
 import os
 import re
+import regex  # CJK Text Contract R1 — \p{Hangul} (로컬 분기)
 import struct
 import sys
 import zipfile
 import zlib
+
+# ── CJK Text Contract E3 (CJK-TEXT-CONTRACT.md) ───────────────────
+# 한국어 Windows 콘솔의 기본은 cp949 다. 한글·한자는 대개 있지만 《—》·《✓》·확장
+# 한자·옛한글은 **없어서**, 그런 글자를 print 하면 UnicodeEncodeError 로 즉사한다.
+# 이 PC 는 사용자 환경변수 PYTHONUTF8=1 이 박혀 있어 겪지 않는다 — 받는 사람 PC
+# 에는 없다. 스킬끼리는 import 하지 않으므로(각자 junction 으로 배포) 네 줄을 품는다.
+# (로컬 분기 — 상류 jkf87/hwpx-skill 에는 없다. vendor/hwpx/.upstream.json 참조)
+for _stream in (sys.stdout, sys.stderr):
+    try:
+        _stream.reconfigure(encoding="utf-8", errors="replace")
+    except (AttributeError, ValueError, OSError):
+        pass  # 파이프·리다이렉트 등 재설정 불가 환경
 
 # ─── 라벨 인식 (kordoc recognize.ts 포팅) ───────────────────────────
 
@@ -82,10 +95,10 @@ def is_label_cell(text):
         if kw in trimmed:
             return True
     compact = re.sub(r"\s", "", trimmed)
-    if (re.fullmatch(r"[가-힣\s()（）·:：]+", trimmed)
+    if (regex.fullmatch(r"[\p{Hangul}\s()（）·:：]+", trimmed)
             and 2 <= len(compact) <= 8 and not re.search(r"\d", trimmed)):
         return True
-    if re.fullmatch(r"[가-힣A-Za-z\s]+[:：]", trimmed):
+    if regex.fullmatch(r"[\p{Hangul}A-Za-z\s]+[:：]", trimmed):
         return True
     return False
 
@@ -125,9 +138,9 @@ def is_keyword_label(text):
 
 CHECKBOX_TRUTHY = {"☑", "✓", "✔", "v", "V", "true", "1", "yes", "o", "O", ""}
 
-_BRACKET_RE = re.compile(r"([가-힣A-Za-z]+)\(\s{1,}\)([가-힣A-Za-z]*)")
-_CHECKBOX_RE = re.compile(r"□([가-힣A-Za-z]+)")
-_ANNOTATION_RE = re.compile(r"\(([가-힣A-Za-z]+)[:：]\s{1,}\)")
+_BRACKET_RE = regex.compile(r"([\p{Hangul}A-Za-z]+)\(\s{1,}\)([\p{Hangul}A-Za-z]*)")
+_CHECKBOX_RE = regex.compile(r"□([\p{Hangul}A-Za-z]+)")
+_ANNOTATION_RE = regex.compile(r"\(([\p{Hangul}A-Za-z]+)[:：]\s{1,}\)")
 
 
 def fill_in_cell_patterns(cell_text, values, matched_labels):
@@ -510,7 +523,7 @@ def apply_text_replacements(tnodes, original_full, replaced_full):
 
 # ─── 섹션 채우기 (전략 0~3) ────────────────────────────────────────
 
-INLINE_RE = re.compile(r"([가-힣A-Za-z]{2,10})\s*[:：]\s*([^\n,;]{0,100})")
+INLINE_RE = regex.compile(r"([\p{Hangul}A-Za-z]{2,10})\s*[:：]\s*([^\n,;]{0,100})")
 
 
 def fill_section(xml, values, matched_labels, filled, section_index):
