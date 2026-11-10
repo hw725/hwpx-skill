@@ -16,9 +16,12 @@ metadata:
     (3) 스크립트·시험 52개에 CJK Text Contract E3(콘솔 UTF-8 고정) 블록, fill_hwpx·finalize_hwpx·시험 2개에
     R1(regex 모듈 \p{Hangul}), 시험 4개에 E2(read_text 인코딩 명시)를 넣었다 — 받는 사람 PC 의 cp949 콘솔 대비.
     (4) 실행 중 pip 설치·--break-system-packages·고정 없는 git clone·원작자 개인 경로를 쓰지 않는다
-    (2026-10-07 트리아지 P0). 상류 convert_hwp.py 는 이제 고정 벤더링 rhwp WASM(npm @rhwp/core 0.7.12 와
-    바이트 동일 — 상류 vendor/README 의 0.7.10 표기는 오기)을 써서 이 조건을 스스로 만족한다.
+    (2026-10-07 트리아지 P0). 상류 convert_hwp.py 는 고정 벤더링 rhwp WASM 을 써서 이 조건을 스스로 만족한다.
     (5) 상류 README·RELEASE_NOTES·.gitignore 는 받지 않는다. 폴더의 README.md 는 로컬 안내문이다.
+    (6) 벤더링 rhwp 를 npm @rhwp/core 0.9.0 으로 올렸다(2026-11-10, rhwp.js·rhwp_bg.wasm·notices/ — 상류는
+    0.7.12, vendor/README 의 0.7.10 표기는 상류 오기). 0.7.12 는 표 안 각주를 빠뜨린다(실측 14개 중 13개).
+    0.9.0 은 표 칸 줄바꿈을 hp:t 안의 hp:lineBreak 로 내보내므로 text_extract.py 가 그것을 개행으로 치게
+    하고 test_convert_hwp.py 의 기대값을 그 꼴로 바꿨다. 상류가 rhwp 를 올리면 이 셋을 다시 맞댄다.
 ---
 
 # 편집 가능한 고품질 한글 문서
@@ -43,7 +46,7 @@ metadata:
 py -3 -m pip install -r requirements-one-shot.txt      # lxml·jsonschema·Pillow·regex(+Windows pywin32)
 ```
 
-- HWP→HWPX 변환 `convert_hwp.py`는 Node.js 18+가 필요하다. 변환 엔진은 `scripts/vendor/rhwp/`에 고정돼 있다(npm `@rhwp/core` 0.7.12와 바이트 동일, MIT).
+- HWP→HWPX 변환 `convert_hwp.py`는 Node.js 18+가 필요하다. 변환 엔진은 `scripts/vendor/rhwp/`에 고정돼 있다(npm `@rhwp/core` 0.9.0과 같은 파일, MIT).
 - 한컴 COM 경로(`convert_hwp_hancom.ps1`·`render_hwpx.py`·`validate.py --hancom`)는 Windows 한컴오피스와 HwpAutomation 파일 경로 보안 모듈이 있어야 한다. 이 스크립트들은 스스로 띄운 COM 객체만 `Quit()`으로 닫는다. 한/글 프로세스를 이름으로 끄는 명령은 사용자가 열어 둔 문서까지 닫으므로 쓰지 않는다.
 - pyhwpx 기반 `.hwp` 저장의 한글·공백 경로 함정과 내용 검증법은 `hwp` 스킬 《워크플로우 G》가 소유한다.
 

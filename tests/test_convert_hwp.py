@@ -110,8 +110,18 @@ def test_table_linebreaks_and_strict_validation() -> None:
         converted = run_converter(str(FIXTURE), "-o", str(output))
         assert converted.returncode == 0, converted.stderr
         xml = section_text(output)
-        assert "1. Term of\nLabor\ncontract" in xml
+        # rhwp 0.9.0 emits table-cell line breaks as <hp:lineBreak/> inside <hp:t>
+        # (0.7.12 wrote a raw newline character).
+        assert "1. Term of<hp:lineBreak/>Labor<hp:lineBreak/>contract" in xml
         assert "1. Term ofLaborcontract" not in xml
+        extracted = subprocess.run(
+            [sys.executable, str(VALIDATOR.parent / "text_extract.py"), str(output), "--include-tables"],
+            capture_output=True,
+            text=True, encoding="utf-8",
+        )
+        assert extracted.returncode == 0, extracted.stderr
+        assert "1. Term of\nLabor\ncontract" in extracted.stdout
+        assert "1. Term ofLaborcontract" not in extracted.stdout
         assert "<hp:linesegarray" in xml
         validated = subprocess.run(
             [sys.executable, str(VALIDATOR), str(output)],

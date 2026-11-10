@@ -13,7 +13,19 @@ import argparse
 import sys
 from pathlib import Path
 
-from hwpx import TextExtractor
+from hwpx import TextExtractor as _BaseTextExtractor
+
+
+class TextExtractor(_BaseTextExtractor):
+    """python-hwpx 6.0.2 skips <hp:lineBreak/> when it sits inside <hp:t>
+    (the standard HWPX form, and what rhwp 0.9.0 emits), gluing the words
+    on both sides together. Render it as a newline."""
+
+    def _render_text_element(self, element, fragments, annotations):
+        if element.tag.rsplit("}", 1)[-1] == "lineBreak":
+            fragments.append("\n")
+            return
+        super()._render_text_element(element, fragments, annotations)
 
 
 def extract_plain(hwpx_path: str, *, include_tables: bool = False) -> str:
