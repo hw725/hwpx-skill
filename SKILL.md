@@ -10,7 +10,7 @@ metadata:
   upstream_pin: ba90fc5ae15f4aead8dab4f9d69d4830b9569859
   license: UNLICENSED (upstream has no license — see NOTICE.md section 4)
   local_divergence: >-
-    상류 jkf87/hwpx-skill 을 ba90fc5(2026-09-15)에 고정해 벤더링한다. 기계 검사 사양은 .upstream.json 이 정본이다.
+    상류 jkf87/hwpx-skill 을 ba90fc5(2026-09-15)에 고정해 벤더링한다. 상류 추종은 hw725 fork와 claude-skills `scripts/fork_review.py`가 맡는다. 옛 계약 사양은 claude-skills `docs/archive/vendor-contracts/hwpx.upstream.json`에 보관돼 있다.
     (1) description·allowed-tools·이 frontmatter 는 로컬 것이다 — hwp front-door 라우팅을 지킨다.
     (2) 본문의 《소유권 경계》·《환경 설정》·《완료 조건》·《손대지 말 것》 절과 py -3 안내는 로컬 추가다.
     (3) 스크립트·시험 52개에 CJK Text Contract E3(콘솔 UTF-8 고정) 블록, fill_hwpx·finalize_hwpx·시험 2개에
@@ -29,8 +29,6 @@ metadata:
 > 아래 명령의 `python`·`python3`는 macOS/Linux 표기다. Windows(이 PC)에서는 `py -3`로 바꿔 부른다 — 이 PC의 `python3`는 Store 스텁이라 조용히 실패한다. (로컬 분기)
 
 모델은 요구 이해와 원고 구성에 집중하고, 코드는 입력 계약·자원·내용 보존·파일 저장을 검증한다. 같은 명세의 재현성과 서로 다른 모델의 결과 일관성은 별개다. 실제 모델 비교 없이 후자를 보장하지 않는다.
-
-아스트라(Astra, `gpt-6-astra`)를 사용하는 Codex 환경을 지원한다. 집필·도식 설계·검토에 사용자 지정 모델과 추론 설정을 유지하며, 사용자 요청 없이 Astra로 전환하거나 추가 모델을 호출하지 않는다. Astra와 Luna 모두 같은 입력 계약·검사 경로를 사용한다.
 
 ## 소유권 경계
 
@@ -105,7 +103,7 @@ python scripts/one_shot.py /absolute/path/spec.json --report /absolute/path/qual
 python scripts/render_hwpx.py /absolute/path/output.hwpx --output-dir /absolute/path/new-empty-review-folder --expected-pages 1
 ```
 
-독립 한컴 인스턴스에서 열고 PDF 및 PNG로 내보낸다(Poppler가 없어도 한컴 네이티브 기능으로 자동 내보냄). 모든 페이지의 제목 계층, 잘림·겹침, 연결 라벨, 표 분할, 불필요한 빈 페이지를 `view_file`로 직접 시각 검토(Visual QA)한다. 긴 라벨은 내용을 삭제하기보다 배치·방향·칸 크기를 조정하고 다시 검증한다.
+독립 한컴 인스턴스에서 열고 PDF 및 PNG로 내보낸다(Poppler가 없어도 한컴 네이티브 기능으로 자동 내보냄). 모든 페이지의 제목 계층, 잘림·겹침, 연결 라벨, 표 분할, 불필요한 빈 페이지를 렌더된 PNG를 이미지 읽기 도구(Claude Code는 `Read`)로 열어 직접 시각 검토한다. 긴 라벨은 내용을 삭제하기보다 배치·방향·칸 크기를 조정하고 다시 검증한다.
 
 - **페이지 밀림/폭발 방지**: 양식 원본의 빈 셀에 설정된 큰 `cellSz/@height`(예: 20000~30000 HWPUNIT)는 글자가 들어가면 페이지가 밀리는 주원인이다. 본문이 채워지는 셀의 높이는 1000 이하로 리셋하여 내용량에 맞게 자동 확장(auto-grow)되도록 조정한다.
 - **불필요한 빈 문단 삭제**: 표 내부나 섹션의 잔여 빈 문단(`<hp:p>`)을 정리하고 줄간격(`lineSpacing`)을 130% 수준으로 조판한다.
